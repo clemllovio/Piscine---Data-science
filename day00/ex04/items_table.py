@@ -27,6 +27,7 @@ def create_table_and_copy_data(csv_path: str, table_name: str):
     try:
         create_table_query = f"""
                 CREATE TABLE IF NOT EXISTS {table_name}(
+                    id SERIAL PRIMARY KEY,
                     product_id BIGINT,
                     category_id FLOAT NULL,
                     category_code VARCHAR(255) NULL,

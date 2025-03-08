@@ -26,6 +26,7 @@ def create_table_and_copy_data(csv_path: str, table_name: str):
     try:
         create_table_query = f"""
                 CREATE TABLE IF NOT EXISTS {table_name}(
+                    id SERIAL PRIMARY KEY,
                     event_time TIMESTAMP WITH TIME ZONE,
                     event_type VARCHAR(255),
                     product_id BIGINT,
