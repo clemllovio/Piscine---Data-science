@@ -3,14 +3,12 @@ import glob
 import os
 from dotenv import load_dotenv
 
-load_dotenv(os.path.abspath("./.env"))
 
-def create_table_and_copy_data(csv_path: str, table_name: str):
+def join_table():
     """
     Creates a table in the PostgreSQL database if it doesn't exist and
     loads the provided DataFrame into it.
     """
-
     connection_params = {
         'dbname': os.getenv("POSTGRES_DB"),
         'user': os.getenv("POSTGRES_USER"),
@@ -23,40 +21,54 @@ def create_table_and_copy_data(csv_path: str, table_name: str):
     cursor = connection.cursor()
 
     try:
+
         create_table_query = f"""
-                CREATE TABLE IF NOT EXISTS {table_name}(
-                    event_time TIMESTAMP WITH TIME ZONE,
-                    event_type VARCHAR(255),
-                    product_id BIGINT,
-                    price FLOAT,
-                    user_id INT,
-                    user_session UUID
-                )"""
+                        CREATE TABLE IF NOT EXISTS customers(
+                            id SERIAL PRIMARY KEY,
+                            event_time TIMESTAMP WITH TIME ZONE,
+                            event_type VARCHAR(255),
+                            product_id BIGINT,
+                            price FLOAT,
+                            user_id INT,
+                            user_session UUID
+                        )"""
         cursor.execute(create_table_query)
 
-        with open(csv_path, 'r') as f:
-            next(f)
-            columns = "event_time, event_type, product_id, price, user_id, user_session"
-            cursor.copy_expert(
-                f"COPY {table_name} ({columns}) FROM STDIN WITH CSV",
-                f
-            )
+        cursor.execute("""
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public' and
+                    table_name LIKE 'data_%';
+                """)
+        tables = cursor.fetchall()
 
+        union_query = ""
+        for table in tables:
+            table_name = table[0]
+            union_query += f"SELECT event_time, event_type, product_id, price, user_id, user_session FROM {table_name} UNION ALL "
+
+        union_query = union_query.rstrip(" UNION ALL ")
+
+        sql_query = f"""
+                    INSERT INTO customers(event_time, event_type, product_id, price, user_id, user_session)
+                    {union_query};
+                """
+        cursor.execute(sql_query)
         connection.commit()
-        print(f"Successfully copied data from {csv_path} to {table_name}")
 
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
     finally:
-        cursor.close()
-        connection.close()
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
 
 
 def main():
-    joined_list = glob.glob("subject/customer/*.csv")
-    for csv_path in joined_list:
-        create_table_and_copy_data(csv_path, "customers")
+    load_dotenv(os.path.abspath("./.env"))
+    join_table()
 
 if __name__ == "__main__":
     main()
