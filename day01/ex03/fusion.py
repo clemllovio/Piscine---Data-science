@@ -13,6 +13,7 @@ def fusion_tables():
 
     try:
         connection = psycopg2.connect(**connection_params)
+        connection.autocommit = False
         cursor = connection.cursor()
 
 
@@ -27,28 +28,15 @@ def fusion_tables():
         sql_query = """
             UPDATE customers
             SET
-                category_id = item.category_id
+                category_id = item.category_id,
+                category_code = item.category_code,
+                brand = item.brand
             FROM item
             WHERE customers.product_id = item.product_id
             """
-        cursor.execute(sql_query)
+        # cursor.execute(sql_query)
 
-        sql_query = """
-            UPDATE customers
-            SET
-                category_code = item.category_code
-            FROM item
-            WHERE customers.product_id = item.product_id
-             """
-        cursor.execute(sql_query)
-
-        sql_query = """
-                            UPDATE customers
-                            SET
-                                brand = item.brand
-                            FROM item
-                            WHERE customers.product_id = item.product_id;
-                            """
+        cursor.execute("BEGIN")
         cursor.execute(sql_query)
         connection.commit()
     except psycopg2.Error as e:
