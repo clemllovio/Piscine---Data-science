@@ -1,5 +1,4 @@
 import psycopg2
-import glob
 import os
 from dotenv import load_dotenv
 
@@ -38,7 +37,7 @@ def join_table():
                     SELECT table_name
                     FROM information_schema.tables
                     WHERE table_schema = 'public' and
-                    table_name LIKE 'data_%';
+                    table_name LIKE 'data_202%_%%%';
                 """)
         tables = cursor.fetchall()
 
