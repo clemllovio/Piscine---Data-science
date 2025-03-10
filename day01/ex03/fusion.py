@@ -68,7 +68,7 @@ def fusion_tables():
             connection.close()
 
 def main():
-    load_dotenv(os.path.abspath("./.env"))
+    load_dotenv(os.path.abspath("../.env"))
     fusion_tables()
 
 

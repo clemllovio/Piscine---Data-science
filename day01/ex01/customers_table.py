@@ -66,7 +66,7 @@ def join_table():
 
 
 def main():
-    load_dotenv(os.path.abspath("./.env"))
+    load_dotenv(os.path.abspath("../.env"))
     join_table()
 
 if __name__ == "__main__":

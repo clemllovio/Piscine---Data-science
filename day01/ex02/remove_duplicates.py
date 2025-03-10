@@ -29,11 +29,6 @@ def delete_duplicates():
                             )"""
         cursor.execute(create_table_query)
 
-        cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_dedup 
-                    ON customers (event_type, product_id, price, user_id, user_session);
-                """)
-
         sql_query = """
                         INSERT INTO temp_table (event_time, event_type, product_id, price, user_id, user_session)
                         SELECT DISTINCT ON (event_type, product_id, price, user_id, user_session, DATE_TRUNC('second', event_time)) 
@@ -49,8 +44,6 @@ def delete_duplicates():
                         ORDER BY event_type, product_id, price, user_id, user_session, DATE_TRUNC('second', event_time), event_time;
                     """
         cursor.execute(sql_query)
-
-        cursor.execute("DROP VIEW IF EXISTS rounded_time_view;")
 
         sql_query = "DROP TABLE IF EXISTS customers;"
         cursor.execute(sql_query)
@@ -70,7 +63,7 @@ def delete_duplicates():
             connection.close()
 
 def main():
-    load_dotenv(os.path.abspath("./.env"))
+    load_dotenv(os.path.abspath("../.env"))
     delete_duplicates()
 
 
