@@ -44,8 +44,8 @@ def create_table_and_copy_data(csv_path: str, table_name: str):
                 f
             )
 
-        delete_null_query = f"DELETE FROM {table_name} WHERE category_id IS NULL;"
-        cursor.execute(delete_null_query)
+        # delete_null_query = f"DELETE FROM {table_name} WHERE category_id IS NULL AND brand IS NULL AND category_code IS NOT NULL;"
+        # cursor.execute(delete_null_query)
 
         connection.commit()
         print(f"Successfully copied data from {csv_path} to {table_name}")

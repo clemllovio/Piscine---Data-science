@@ -30,24 +30,23 @@ def delete_duplicates():
         cursor.execute(create_table_query)
 
         cursor.execute("""
-                        CREATE TEMP VIEW rounded_time_view AS
-                        SELECT 
-                            event_time,
-                            event_type,
-                            product_id,
-                            price,
-                            user_id,
-                            user_session,
-                            date_trunc('second', event_time) as rounded_time
-                        FROM customers
-                    """)
+                    CREATE INDEX IF NOT EXISTS idx_dedup 
+                    ON customers (event_type, product_id, price, user_id, user_session);
+                """)
 
         sql_query = """
                         INSERT INTO temp_table (event_time, event_type, product_id, price, user_id, user_session)
-                        SELECT DISTINCT ON (event_type, product_id, price, user_id, user_session, rounded_time) 
+                        SELECT DISTINCT ON (event_type, product_id, price, user_id, user_session, DATE_TRUNC('second', event_time)) 
                             event_time, event_type, product_id, price, user_id, user_session
-                        FROM rounded_time_view
-                        ORDER BY event_type, product_id, price, user_id, user_session, rounded_time, event_time;
+                        FROM (
+                            SELECT customers.*,
+                            LAG(event_time) OVER (PARTITION BY event_type, product_id, price, user_id, user_session ORDER BY event_time) as prev_time
+                            FROM customers 
+                        ) as subq
+                        WHERE 
+                            prev_time IS NULL OR 
+                            event_time - prev_time > INTERVAL '1 second'
+                        ORDER BY event_type, product_id, price, user_id, user_session, DATE_TRUNC('second', event_time), event_time;
                     """
         cursor.execute(sql_query)
 
