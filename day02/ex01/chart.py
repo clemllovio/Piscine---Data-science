@@ -17,6 +17,7 @@ def get_data():
     connection = psycopg2.connect(**connection_params)
     cursor = connection.cursor()
     result = []
+    result1 = []
     try:
 
         sql_query = """SELECT DATE(event_time) AS purchase_date, COUNT(*) AS customer_count
@@ -27,7 +28,16 @@ def get_data():
                     ORDER BY purchase_date;"""
         cursor.execute(sql_query)
         result = cursor.fetchall()
-        return (result)
+
+        sql_query = """SELECT TO_CHAR(event_time, 'YYYY-MM') AS purchase_month, SUM(price) AS total_price
+                            FROM customers
+                            WHERE event_type = 'purchase' 
+                            AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
+                            GROUP BY TO_CHAR(event_time, 'YYYY-MM') 
+                            ORDER BY purchase_month;"""
+        cursor.execute(sql_query)
+        result1 = cursor.fetchall()
+
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
@@ -37,7 +47,7 @@ def get_data():
         if connection:
             connection.close()
 
-    return (result)
+    return result, result1
 
 
 def create_line_chart(date, nbr_date):
@@ -60,13 +70,26 @@ def create_line_chart(date, nbr_date):
     plt.ylabel('Number of customers')
     plt.show()
 
+def create_bar_plot(month, amout):
+    plt.rcParams['axes.spines.left'] = False
+    plt.rcParams['axes.spines.right'] = False
+    plt.rcParams['axes.spines.top'] = False
+    plt.rcParams['axes.spines.bottom'] = False
+    formatted_months = [datetime.strptime(m, '%Y-%m').strftime('%b') for m in month]
+    plt.bar(formatted_months, amout)
+    plt.tick_params(left=False, bottom=False)
+    plt.gca().set_facecolor((0.9176, 0.9176, 0.9451))
+    plt.ylabel('total sales in million of A')
+    plt.show()
 
 def main():
     load_dotenv(os.path.abspath("../../.env"))
-    data = get_data()
+    data, data1 = get_data()
     date, nbr_date = zip(*data)
-    print(date)
+    print(data1)
+    month, amount = zip(*data1)
     create_line_chart(date, nbr_date)
+    create_bar_plot(month, amount)
 
 if __name__ == "__main__":
     main()
