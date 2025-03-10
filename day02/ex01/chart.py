@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
+from datetime import datetime
 
 def get_data():
     connection_params = {
@@ -47,33 +48,24 @@ def create_line_chart(date, nbr_date):
     plt.rcParams['axes.spines.top'] = False
     plt.rcParams['axes.spines.bottom'] = False
 
+    plt.plot(date, nbr_date)
+    plt.tick_params(left=False, bottom=False)
 
-    fig, ax = plt.subplots()
-    ax.plot(date, nbr_date)
-    ax.tick_params(left=False)
-    ax.tick_params(bottom=False)
-    ax.set_xlim([datetime(2022, 10, 1), datetime(2023, 2, 28)])
-    ax.xaxis.set_major_locator(mdates.MonthLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
-    ax.grid(True, color='white')
-    # ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=4, steps=[1, 2, 3, 6]))
-    months = mdates.MonthLocator(bymonth=[10, 11, 12, 1])
-    ax.xaxis.set_major_locator(months)
-    ax.set_facecolor((0.9176, 0.9176, 0.9451))
-    ax.set_ylabel('Number of customers')
+    plt.xlim([datetime(2022, 10, 1), datetime(2023, 1, 31)])
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    plt.grid(True, color='white')
+
+    plt.gca().set_facecolor((0.9176, 0.9176, 0.9451))
+    plt.ylabel('Number of customers')
     plt.show()
 
-
-
-from datetime import datetime
 
 def main():
     load_dotenv(os.path.abspath("../../.env"))
     data = get_data()
     date, nbr_date = zip(*data)
     print(date)
-    # print(nbr_date[0])
-    # print(nbr_date[0])
     create_line_chart(date, nbr_date)
 
 if __name__ == "__main__":
