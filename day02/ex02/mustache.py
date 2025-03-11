@@ -43,11 +43,10 @@ def get_data():
         cursor.execute(sql_query)
         result1 = cursor.fetchall()
 
-        sql_query = """SELECT user_id, SUM(price) AS average_basket_price
+        sql_query = """SELECT user_id, AVG(price) AS average_basket_price
                         FROM customers
-                        WHERE event_type = 'purchase'
+                        WHERE event_type = 'cart'
                         AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
-                        AND price > 0
                         GROUP BY user_id;"""
         cursor.execute(sql_query)
         result2 = cursor.fetchall()
