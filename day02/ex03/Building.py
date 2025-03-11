@@ -18,9 +18,10 @@ def get_data():
     result = []
     try:
 
-        sql_query = """SELECT user_id, COUNT(*) AS nbr_order
+        sql_query = """SELECT user_id, COUNT(*) AS nbr_order, SUM(price) AS total_spent
                     FROM customers
                     WHERE event_type = 'purchase'
+                    AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
                     GROUP BY user_id;"""
 
         cursor.execute(sql_query)
@@ -56,17 +57,15 @@ def main():
     data = get_data()
     # nbr_customer = len(data)
     # print(data)
-    user_id, nbr_order = zip(*data)
-    # print(nbr_order)
-    counter = pd.Series(nbr_order).value_counts().to_dict()
-    nbr_order, nbr_user = zip(*counter.items())
-    nbr_order = list(nbr_order)
-    nbr_user = list(nbr_user)
-    plt.bar(nbr_order, nbr_user)
-    plt.yticks(np.arange(0, max(nbr_user) + 10000, 10000))
-    plt.show()
-    print(counter)
-    # create_pie_chart(data)
+    user_id, nbr_order, total_spent = zip(*data)
+
+    # frequency
+    # plt.hist(nbr_order, bins=5, range=[0, 40])
+    # plt.xticks(np.arange(0, 50 , 10))
+
+    # monetary value
+    # plt.hist(total_spent, bins=5, range=[0,250])
+    # plt.show()
 
 if __name__ == "__main__":
     main()
