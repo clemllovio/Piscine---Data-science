@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
+import numpy as np
 
 def get_data():
     connection_params = {
@@ -18,6 +19,7 @@ def get_data():
     cursor = connection.cursor()
     result = []
     result1 = []
+    result2 = []
     try:
 
         sql_query = """SELECT DATE(event_time) AS purchase_date, COUNT(*) AS customer_count
@@ -38,6 +40,18 @@ def get_data():
         cursor.execute(sql_query)
         result1 = cursor.fetchall()
 
+        sql_query = """
+        SELECT 
+        TO_CHAR(event_time, 'YYYY-MM-DD') AS purchase_day,
+        SUM(price) / COUNT(DISTINCT user_id) AS avg_spend_per_customer_per_day
+        FROM customers
+        WHERE event_type = 'purchase' 
+        AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
+        GROUP BY TO_CHAR(event_time, 'YYYY-MM-DD')
+        ORDER BY purchase_day;"""
+        cursor.execute(sql_query)
+        result2 = cursor.fetchall()
+
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
@@ -47,7 +61,7 @@ def get_data():
         if connection:
             connection.close()
 
-    return result, result1
+    return result, result1, result2
 
 
 def create_line_chart(date, nbr_date):
@@ -82,14 +96,32 @@ def create_bar_plot(month, amout):
     plt.ylabel('total sales in million of A')
     plt.show()
 
+def create_line_plot_full(purchase_day, average_spend_per_customer_per_day):
+    purchase_day = [datetime.strptime(day, '%Y-%m-%d') for day in purchase_day]
+
+    plt.plot(purchase_day, average_spend_per_customer_per_day)
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+    plt.tick_params(left=False, bottom=False)
+    plt.fill_between(purchase_day, average_spend_per_customer_per_day, color='skyblue', alpha=0.4)
+    plt.yticks(np.arange(0, max(average_spend_per_customer_per_day) + 5, 5))
+    plt.gca().set_facecolor((0.9176, 0.9176, 0.9451))
+    plt.ylabel('average spend/customers in A')
+    plt.grid(True, color='white')
+    plt.show()
+
 def main():
     load_dotenv(os.path.abspath("../../.env"))
-    data, data1 = get_data()
+    data, data1, data2 = get_data()
     date, nbr_date = zip(*data)
     print(data1)
     month, amount = zip(*data1)
+    purchase_day, average_spend_per_customer_per_day = zip(*data2)
+
+
     create_line_chart(date, nbr_date)
     create_bar_plot(month, amount)
+    create_line_plot_full(purchase_day, average_spend_per_customer_per_day)
 
 if __name__ == "__main__":
     main()

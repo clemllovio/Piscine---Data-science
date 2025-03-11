@@ -2,7 +2,8 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
-
+import pandas as pd
+import numpy as np
 def get_data():
     connection_params = {
         'dbname': os.getenv("POSTGRES_DB"),
@@ -17,13 +18,13 @@ def get_data():
     result = []
     try:
 
-        sql_query = """SELECT COUNT(*) AS "Number of event_type", event_type 
-                        FROM customers 
-                        GROUP BY event_type;
-                    """
+        sql_query = """SELECT user_id, COUNT(*) AS nbr_order
+                    FROM customers
+                    WHERE event_type = 'purchase'
+                    GROUP BY user_id;"""
+
         cursor.execute(sql_query)
         result = cursor.fetchall()
-        return (result)
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
@@ -33,10 +34,10 @@ def get_data():
         if connection:
             connection.close()
 
-    return (result)
+    return result
 
 
-def create_pie_chart(data):
+def create_bart_chart_frequency(data):
     if not data:
         return
 
@@ -53,7 +54,19 @@ def create_pie_chart(data):
 def main():
     load_dotenv(os.path.abspath("../../.env"))
     data = get_data()
-    create_pie_chart(data)
+    # nbr_customer = len(data)
+    # print(data)
+    user_id, nbr_order = zip(*data)
+    # print(nbr_order)
+    counter = pd.Series(nbr_order).value_counts().to_dict()
+    nbr_order, nbr_user = zip(*counter.items())
+    nbr_order = list(nbr_order)
+    nbr_user = list(nbr_user)
+    plt.bar(nbr_order, nbr_user)
+    plt.yticks(np.arange(0, max(nbr_user) + 10000, 10000))
+    plt.show()
+    print(counter)
+    # create_pie_chart(data)
 
 if __name__ == "__main__":
     main()
