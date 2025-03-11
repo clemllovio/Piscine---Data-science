@@ -16,9 +16,10 @@ def get_data():
     connection = psycopg2.connect(**connection_params)
     cursor = connection.cursor()
     result = []
+    result1 = []
     try:
 
-        sql_query = """SELECT user_id, COUNT(*) AS nbr_order, SUM(price) AS total_spent
+        sql_query = """SELECT user_id, COUNT(*) AS nbr_order
                     FROM customers
                     WHERE event_type = 'purchase'
                     AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
@@ -26,6 +27,14 @@ def get_data():
 
         cursor.execute(sql_query)
         result = cursor.fetchall()
+
+        sql_query = """ SELECT user_id, SUM(price) AS total_price
+        FROM customers
+        WHERE event_type = 'purchase'
+        AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59'
+        GROUP BY user_id;"""
+        cursor.execute(sql_query)
+        result1 = cursor.fetchall()
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
@@ -35,37 +44,50 @@ def get_data():
         if connection:
             connection.close()
 
-    return result
+    return result, result1
 
 
-def create_bart_chart_frequency(data):
-    if not data:
+def plot_style():
+    plt.rcParams['axes.spines.left'] = False
+    plt.rcParams['axes.spines.right'] = False
+    plt.rcParams['axes.spines.top'] = False
+    plt.rcParams['axes.spines.bottom'] = False
+    plt.grid(True, color='white')
+    plt.gca().set_facecolor((0.9176, 0.9176, 0.9451))
+    plt.tick_params(left=False, bottom=False)
+
+def create_frequency_chart(nbr_order):
+    plot_style()
+    if not nbr_order:
+        print("Error: no value")
         return
 
-    try:
-        nbr_data, type_data = zip(*data)
-        print(nbr_data)
-        print(type_data)
-        plt.pie(nbr_data, labels=type_data, autopct='%1.1f%%')
-        plt.show()
-    except ValueError as e:
-        print(f"Error unpacking data: {e}")
+    plt.hist(nbr_order, bins=5, range=[0, 40], color='#B9C4D6', edgecolor='white', zorder=3)
 
+    plt.xticks(np.arange(10, 40 , 10))
+    plt.xlabel("frequency")
+    plt.ylabel("customers")
+
+    plt.show()
+
+def create_monetary_value_chart(total_spent):
+    if not total_spent:
+        print("Error: no value")
+        return
+    plot_style()
+    plt.hist(total_spent, bins=5, range=[0, 250], color='#B9C4D6', edgecolor='white', zorder=3)
+    plt.xticks(np.arange(0, 250, 50))
+    plt.xlabel("monetary value in A")
+    plt.ylabel("customers")
+    plt.show()
 
 def main():
     load_dotenv(os.path.abspath("../../.env"))
-    data = get_data()
-    # nbr_customer = len(data)
-    # print(data)
-    user_id, nbr_order, total_spent = zip(*data)
+    data, data1 = get_data()
+    user_id, nbr_order = zip(*data)
 
-    # frequency
-    # plt.hist(nbr_order, bins=5, range=[0, 40])
-    # plt.xticks(np.arange(0, 50 , 10))
-
-    # monetary value
-    # plt.hist(total_spent, bins=5, range=[0,250])
-    # plt.show()
+    create_frequency_chart(nbr_order)
+    create_monetary_value_chart([item[1] for item in data1])
 
 if __name__ == "__main__":
     main()
