@@ -23,7 +23,7 @@ def get_data():
                     """
         cursor.execute(sql_query)
         result = cursor.fetchall()
-        return (result)
+
     except Exception as e:
         connection.rollback()
         print(f"Error: {e}")
@@ -33,18 +33,17 @@ def get_data():
         if connection:
             connection.close()
 
-    return (result)
+    return result
 
 
 def create_pie_chart(data):
     if not data:
+        print("Error: data is empty")
         return
 
     try:
         nbr_data, type_data = zip(*data)
-        print(nbr_data)
-        print(type_data)
-        plt.pie(nbr_data, labels=type_data, autopct='%1.1f%%')
+        plt.pie(nbr_data, labels=type_data, autopct='%1.1f%%', startangle=180)
         plt.show()
     except ValueError as e:
         print(f"Error unpacking data: {e}")
