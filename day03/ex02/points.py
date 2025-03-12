@@ -4,12 +4,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 def get_correlation_matrix(path):
-    data = pd.read_csv(path)
+    try:
+        data = pd.read_csv(path)
 
-    data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
-    numeric_data = data.select_dtypes(include=['number']).dropna()
-    correlation = numeric_data.corr()["knight"].abs().sort_values(ascending=False)
-    return correlation, data
+        data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
+        numeric_data = data.select_dtypes(include=['number']).dropna()
+        correlation = numeric_data.corr()["knight"].abs().sort_values(ascending=False)
+        return correlation, data
+    except FileNotFoundError:
+        print(f'{e}')
+        return None, None
 
 def high_correlation_graph(correlation, data, data_test):
     highest_correlation = correlation.index[1]
@@ -50,7 +54,15 @@ def low_correlation_graph(correlation, data, data_test):
 
 def main():
     correlation, data = get_correlation_matrix("../Train_knight.csv")
-    data_test = pd.read_csv("../Test_knight.csv")
+    if correlation.empty or data.empty:
+        return
+
+    try:
+        data_test = pd.read_csv("../Test_knight.csv")
+    except FileNotFoundError:
+        print(f'{e}')
+        return
+
     data["knight"] = data["knight"].map({0: "Sith", 1: "Jedi"}).astype(str)
     high_correlation_graph(correlation, data, data_test)
     low_correlation_graph(correlation, data, data_test)
