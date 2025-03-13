@@ -5,10 +5,7 @@ def visualize_knight_data():
     try:
         data = pd.read_csv('../Test_knight.csv')
 
-        num_columns = len(data.columns)
-        num_rows = (num_columns + 4) // 5
-
-        fig, axes = plt.subplots(num_rows, 5, figsize=(20, 4 * num_rows))
+        fig, axes = plt.subplots(6, 5, figsize=(20, 18))
 
         axes = axes.flatten()
 
@@ -28,22 +25,18 @@ def understand_interaction():
     try:
         data = pd.read_csv('../Train_knight.csv')
 
-        features = data.columns.difference(['knight'])
-
-        num_features = len(features)
-        num_rows = (num_features + 4) // 5
-        fig, axes = plt.subplots(num_rows, 5, figsize=(20, num_rows * 4))
+        fig, axes = plt.subplots(6, 5, figsize=(20, 18))
 
         axes = axes.flatten()
 
-        for i, feature in enumerate(features):
-            ax = axes[i]
+        for i, column in enumerate(data.columns):
+            if column == 'knight':
+                continue
+            axes[i].hist(data[data['knight'] == 'Jedi'][column], alpha=0.3, color='blue', label='Jedi', bins=50)
+            axes[i].hist(data[data['knight'] == 'Sith'][column], alpha=0.3, color='red', label='Sith', bins=50)
 
-            ax.hist(data[data['knight'] == 'Jedi'][feature], alpha=0.3, color='blue', label='Jedi', bins=50)
-            ax.hist(data[data['knight'] == 'Sith'][feature], alpha=0.3, color='red', label='Sith', bins=50)
-
-            ax.set_title(f'{feature}')
-            ax.legend()
+            axes[i].set_title(f'{column}')
+            axes[i].legend()
 
         plt.tight_layout()
 

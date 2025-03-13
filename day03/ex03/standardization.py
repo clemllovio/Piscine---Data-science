@@ -3,11 +3,15 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-def get_correlation_matrix(data):
-    data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
-    numeric_data = data.select_dtypes(include=['number']).dropna()
-    correlation = numeric_data.corr()["knight"].abs().sort_values(ascending=False)
-    return correlation
+def get_correlation_matrix(path):
+    try:
+        data = pd.read_csv(path)
+        data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
+        correlation = data.corr()["knight"].abs().sort_values(ascending=False)
+        return correlation
+    except FileNotFoundError:
+        print(f'{e}')
+        return None
 
 def high_correlation_graph(correlation, data, data_test):
     highest_correlation = correlation.index[1]
@@ -44,11 +48,13 @@ def main():
     standardized_df = pd.DataFrame(standardized_data, columns=numeric_data.columns)
     standardized_df["knight"] = data['knight']
 
-    standardized_df_test = pd.DataFrame(standardized_data, columns=numeric_data.columns)
-    standardized_data_test = scaler.fit_transform(numeric_data)
-    standardized_df_test = pd.DataFrame(standardized_data, columns=numeric_data.columns)
+    numeric_data_test = data_test.select_dtypes(include=['number'])
+    standardized_data_test = scaler.fit_transform(numeric_data_test)
+    standardized_df_test = pd.DataFrame(standardized_data_test, columns=numeric_data.columns)
 
     correlation = get_correlation_matrix(standardized_df.copy())
+    if correlation is None:
+        return
     high_correlation_graph(correlation, standardized_df, standardized_df_test)
     print(standardized_df)
 
