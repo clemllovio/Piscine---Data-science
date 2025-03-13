@@ -8,7 +8,7 @@ def get_correlation_matrix(path):
         data = pd.read_csv(path)
 
         data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
-        correlation = numeric_data.corr()["knight"].abs().sort_values(ascending=False)
+        correlation = data.corr()["knight"].abs().sort_values(ascending=False)
         return correlation, data
     except FileNotFoundError:
         print(f'{e}')

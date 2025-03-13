@@ -99,7 +99,7 @@ def main():
     data, price, average_basket_price = get_data()
 
     count, mean, std, min, q1, q2, q3, max = zip(*data)
-    print(f'count: {count}\nmean: {mean}\nstd: {std}\nmin: {min}\nq1: {q1}\nq2: {q2}\nq3: {q3}\nmax: {max}')
+    print(f'count: {count[0]}\nmean: {mean[0]}\nstd: {std[0]}\nmin: {min[0]}\nq1: {q1[0]}\nq2: {q2[0]}\nq3: {q3[0]}\nmax: {max[0]}')
 
     prices = [p[0] for p in price]
 

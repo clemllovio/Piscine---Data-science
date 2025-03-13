@@ -3,9 +3,8 @@ from sklearn.preprocessing import StandardScaler
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-def get_correlation_matrix(path):
+def get_correlation_matrix(data):
     try:
-        data = pd.read_csv(path)
         data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
         correlation = data.corr()["knight"].abs().sort_values(ascending=False)
         return correlation

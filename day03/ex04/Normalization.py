@@ -6,8 +6,7 @@ import seaborn as sns
 
 def get_correlation_matrix(data):
     data['knight'] = data['knight'].apply(lambda x: 1 if x == 'Jedi' else 0)
-    numeric_data = data.select_dtypes(include=['number']).dropna()
-    correlation = numeric_data.corr()["knight"].abs().sort_values(ascending=False)
+    correlation = data.corr()["knight"].abs().sort_values(ascending=False)
     return correlation
 
 
@@ -49,6 +48,8 @@ def main():
     normalized_df_test = pd.DataFrame(normalized_data_test, columns=numeric_data.columns)
 
     correlation = get_correlation_matrix(normalized_df.copy())
+    if correlation is None:
+        return
     low_correlation_graph(correlation, normalized_df, normalized_df_test)
     print(normalized_df)
 

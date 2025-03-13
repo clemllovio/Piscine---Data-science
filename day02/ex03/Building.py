@@ -28,11 +28,12 @@ def get_data():
         cursor.execute(sql_query)
         result = cursor.fetchall()
 
-        sql_query = """ SELECT user_id, SUM(price)
+        sql_query = """ SELECT user_id, SUM(price) AS amount
         FROM customers
         WHERE event_type = 'purchase'
         AND event_time BETWEEN '2022-10-01 00:00:00' AND '2023-01-31 23:59:59' 
-        GROUP BY user_id;"""
+        GROUP BY user_id
+        ORDER BY amount;"""
         cursor.execute(sql_query)
         result1 = cursor.fetchall()
     except Exception as e:
@@ -87,9 +88,6 @@ def main():
     user_id, nbr_order = zip(*data)
 
     create_frequency_chart(nbr_order)
-    print("Sample of total_spent:", sorted([item[1] for item in data1])[:10])  # First 10 values
-    print("Max total_spent:", max([item[1] for item in data1]))
-    print("Number of customers:", len([item[1] for item in data1]))
     create_monetary_value_chart([item[1] for item in data1])
 
 if __name__ == "__main__":
