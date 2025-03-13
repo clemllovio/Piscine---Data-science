@@ -1,10 +1,9 @@
 import sys
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-from sklearn.tree import DecisionTreeClassifier
-import matplotlib.pyplot as plt
-from sklearn import tree
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score
 from sklearn.metrics import f1_score
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 
 def main():
@@ -37,30 +36,38 @@ def main():
 
     X_test = standardized_df_test
 
-    label_encoder = LabelEncoder()
-    y_train = label_encoder.fit_transform(y_train)
+    best_k = 0
+    best_score = 0
+    accuracy_scores = []
 
-    model = DecisionTreeClassifier()
-    model.fit(X_train, y_train)
 
-    y_pred_train = model.predict(X_train)
+    for k in range(2, 31):
+        model = KNeighborsClassifier(n_neighbors=k)
+        scores = cross_val_score(model, X_train, y_train, cv=5)  # 5-fold cross-validation
+        avg_score = scores.mean()
+        accuracy_scores.append(avg_score)
+
+        if avg_score > best_score:
+            best_score = avg_score
+            best_k = k
+
+    plt.plot(range(2, 31), accuracy_scores)
+    plt.show()
+
+    final_model = KNeighborsClassifier(n_neighbors=best_k)
+    final_model.fit(X_train, y_train)
+
+    y_pred_train = final_model.predict(X_train)
     f1 = f1_score(y_train, y_pred_train, average='weighted')
     print(f"F1-score: {f1:.4f}")
     if f1 < 0.9:
         print("Warning: F1-score is below 90%")
 
-    plt.figure(figsize=(20, 10))
-    tree.plot_tree(model, feature_names=X_train.columns, class_names=label_encoder.classes_, filled=True)
-    plt.savefig("tree.png")
-    plt.close()
+    predictions = final_model.predict(X_test)
 
-    predictions = model.predict(X_test)
-    predictions = label_encoder.inverse_transform(predictions)
-    with open("Tree.txt", "w") as f:
-        for pred in predictions:
-            f.write(f"{pred}\n")
-
+    with open("KNN.txt", "w") as f:
+        for pred in enumerate(predictions):
+            f.write(f"{pred[1]}\n")
 
 if __name__ == "__main__":
     main()
-
