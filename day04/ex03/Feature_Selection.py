@@ -1,4 +1,3 @@
-# stats model
 import pandas as pd
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.preprocessing import StandardScaler
@@ -23,12 +22,19 @@ def main():
         print('Error')
         return
 
+    standarized_df = standarized_df.drop(columns=["knight"])
+
     vif_data = pd.DataFrame()
     vif_data["Feature"] = standarized_df.columns
     vif_data["VIF"] = [variance_inflation_factor(standarized_df.values, i)
                           for i in range(len(standarized_df.columns))]
     vif_data["Tolerance"] = [1 / vif for vif in vif_data["VIF"]]
     print(vif_data)
+
+    print("\n\n")
+
+    feature_under_5 = vif_data[vif_data["VIF"] < 5]
+    print("Feature with vif < 5:\n", feature_under_5)
 
 if __name__ == '__main__':
     main()

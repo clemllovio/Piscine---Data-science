@@ -10,6 +10,10 @@ def main():
     truth_txt = sys.argv[1]
     prediction_txt = sys.argv[2]
 
+    if not truth_txt.endswith('.txt') or not prediction_txt.endswith('.txt'):
+        print('Usage: python Confusion_Matrix.py <file.txt> <file.txt>')
+        return
+
     confusion_matrix_list = [[0, 0], [0, 0]]
     with open(truth_txt) as truth_file, open(prediction_txt) as prediction_file:
         for line1, line2 in zip(truth_file, prediction_file):
@@ -30,15 +34,15 @@ def main():
         FN = confusion_matrix_list[0][1]
         FP = confusion_matrix_list[1][0]
         TN = confusion_matrix_list[1][1]
-        precision_jedi = TP / (TP + FP)
-        recall_jedi = TP / (TP + FN)
+        precision_jedi = TP / (TP + FN)
+        recall_jedi = TP / (TP + FP)
         fi_score_jedi = 2 * (precision_jedi * recall_jedi) / (precision_jedi + recall_jedi)
-        total_jedi = TP + FN
+        total_jedi = TP + FP
 
-        precision_sith = TN / (TN + FN)
-        recall_sith = TN / (TN + FP)
+        precision_sith = TN / (TN + FP)
+        recall_sith = TN / (TN + FN)
         fi_score_sith = 2 * (precision_sith * recall_sith) / (precision_sith + recall_sith)
-        total_sith = TN + FP
+        total_sith = TN + FN
 
         accuracy = (TP + TN) / (total_jedi + total_sith)
         total = total_jedi + total_sith
